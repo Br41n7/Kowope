@@ -29,7 +29,7 @@ INSTALLED_APPS = [
     "corsheaders",
     # local apps
     "apps.accounts",
-    # "apps.marketplace",
+    "apps.marketplace",
     # "apps.orders",
     # "apps.documents",
     # "apps.logistics",
