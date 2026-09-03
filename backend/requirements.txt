@@ -1,0 +1,29 @@
+# Core
+Django==6.1.1
+djangorestframework==3.18.0
+django-environ==0.14.0
+
+# Auth
+djangorestframework-simplejwt==5.5.1
+
+# Filtering / pagination / API docs
+django-filter==26.1
+drf-spectacular==0.30.0
+
+# CORS (Next.js frontend runs on a different origin in dev)
+django-cors-headers==4.9.0
+
+# Images (required for InspectionPhoto ImageField)
+pillow==12.3.0
+
+# Testing
+pytest==9.1.1
+pytest-django==4.14.0
+
+# --- Not needed for MVP demo, add when you reach these stages ---
+# psycopg2-binary==2.9.10       # switch to Postgres: set DATABASE_URL in .env
+# celery==5.4.0                 # add in Sprint 6 for async notifications/email
+# redis==5.2.1                  # Celery broker
+# django-storages==1.14.4       # S3-compatible file storage for production
+# boto3==1.35.90                # AWS SDK, used by django-storages
+# factory-boy==3.3.1            # test data factories, optional convenience
