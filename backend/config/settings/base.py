@@ -30,11 +30,11 @@ INSTALLED_APPS = [
     # local apps
     "apps.accounts",
     "apps.marketplace",
-    # "apps.orders",
-    # "apps.documents",
-    # "apps.logistics",
-    # "apps.quality",
-    # "apps.notifications",
+    "apps.orders",
+    "apps.documents",
+    "apps.logistics",
+    "apps.quality",
+    "apps.notifications",
 ]
 
 MIDDLEWARE = [
