@@ -28,7 +28,7 @@ class OfferViewSet(viewsets.ModelViewSet):
     serializer_class = OfferSerializer
     permission_classes = [permissions.IsAuthenticated, IsKYCVerified]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["status", "rfq"]
+    filterset_fields = ["status", "rfq", "seller"]
     owner_field = "seller"
 
     def get_permissions(self):
