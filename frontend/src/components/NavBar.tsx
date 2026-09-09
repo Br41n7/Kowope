@@ -25,16 +25,20 @@ export function NavBar() {
               <Link href="/seller/offers" className="hover:text-ochre">My Offers</Link>
             </>
           )}
-          {user && (
-            <>
-              <Link href="/orders" className="hover:text-ochre">Orders</Link>
-              <Link href="/notifications" className="hover:text-ochre">Notifications</Link>
-            </>
+          {user?.role === "logistics" && (
+            <Link href="/logistics" className="hover:text-ochre">Logistics Desk</Link>
           )}
+          {user?.role === "inspector" && (
+            <Link href="/inspector" className="hover:text-ochre">Inspector Desk</Link>
+          )}
+          {user && (user.role === "buyer" || user.role === "seller" || user.role === "admin") && (
+            <Link href="/orders" className="hover:text-ochre">Orders</Link>
+          )}
+          {user && <Link href="/notifications" className="hover:text-ochre">Notifications</Link>}
           {user?.role === "admin" && (
             <Link href="/admin/kyc-review" className="hover:text-ochre">KYC Review</Link>
           )}
-          {!user?.is_kyc_verified && user && (
+          {user && !user.is_kyc_verified && (user.role === "buyer" || user.role === "seller") && (
             <Link href="/kyc" className="text-ochre">Complete KYC</Link>
           )}
           {user ? (

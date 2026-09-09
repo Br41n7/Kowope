@@ -25,6 +25,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+
 class KYCProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
 

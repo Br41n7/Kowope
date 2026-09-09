@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from core.permissions import IsKYCVerified, IsOwnerOrReadOnly
+from core.mixins import RelativeMediaURLMixin
 from core.services.offer_service import accept_offer, reject_offer
 from apps.orders.serializers import PurchaseOrderSerializer
 from .models import NegotiationMessage, Offer, RFQ
@@ -24,7 +25,7 @@ class RFQViewSet(viewsets.ModelViewSet):
         serializer.save(buyer=self.request.user)
 
 
-class OfferViewSet(viewsets.ModelViewSet):
+class OfferViewSet(RelativeMediaURLMixin, viewsets.ModelViewSet):
     serializer_class = OfferSerializer
     permission_classes = [permissions.IsAuthenticated, IsKYCVerified]
     filter_backends = [DjangoFilterBackend]

@@ -13,6 +13,15 @@ drf-spectacular==0.30.0
 # CORS (Next.js frontend runs on a different origin in dev)
 django-cors-headers==4.9.0
 
+# Static file serving in production (no separate nginx/CDN needed for static assets)
+whitenoise==6.8.2
+
+# Postgres (needed once DATABASE_URL points at Postgres instead of SQLite)
+psycopg2-binary==2.9.10
+
+# Production WSGI server
+gunicorn==23.0.0
+
 # Images (required for InspectionPhoto ImageField)
 pillow==12.3.0
 
@@ -21,9 +30,8 @@ pytest==9.1.1
 pytest-django==4.14.0
 
 # --- Not needed for MVP demo, add when you reach these stages ---
-# psycopg2-binary==2.9.10       # switch to Postgres: set DATABASE_URL in .env
 # celery==5.4.0                 # add in Sprint 6 for async notifications/email
 # redis==5.2.1                  # Celery broker
-# django-storages==1.14.4       # S3-compatible file storage for production
+# django-storages==1.14.4       # S3-compatible file storage — swap in once local disk/volume isn't enough
 # boto3==1.35.90                # AWS SDK, used by django-storages
 # factory-boy==3.3.1            # test data factories, optional convenience

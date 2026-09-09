@@ -1,0 +1,24 @@
+{$DOMAIN} {
+	# Static and media files served directly by Caddy — never hits Django/gunicorn.
+	handle /static/* {
+		root * /
+		file_server
+	}
+	handle /media/* {
+		root * /
+		file_server
+	}
+
+	# Everything under /api/* and /admin/* goes to Django.
+	handle /api/* {
+		reverse_proxy backend:8000
+	}
+	handle /admin/* {
+		reverse_proxy backend:8000
+	}
+
+	# Everything else goes to Next.js.
+	handle {
+		reverse_proxy frontend:3000
+	}
+}

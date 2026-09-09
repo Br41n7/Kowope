@@ -3,8 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { User } from "@/lib/types";
-import { fetchMe } from "@/lib/endpoints";
-import { clearTokens, getTokens } from "@/lib/api";
+import { fetchMe, logout as logoutRequest } from "@/lib/endpoints";
 
 interface AuthState {
   user: User | null;
@@ -20,13 +19,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // Auth state lives in an httpOnly cookie the browser can't read, so we can't
+  // "check for a token" client-side — we just ask the API who's logged in.
+  // A 401 here just means "not logged in", which is a normal, expected state.
   const refresh = async () => {
-    const { access } = getTokens();
-    if (!access) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
     try {
       const me = await fetchMe();
       setUser(me);
@@ -40,11 +36,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let ignore = false;
     (async () => {
-      const { access } = getTokens();
-      if (!access) {
-        if (!ignore) setLoading(false);
-        return;
-      }
       try {
         const me = await fetchMe();
         if (!ignore) setUser(me);
@@ -60,9 +51,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = () => {
-    clearTokens();
-    setUser(null);
-    router.push("/login");
+    logoutRequest().finally(() => {
+      setUser(null);
+      router.push("/login");
+    });
   };
 
   return (

@@ -1,25 +1,7 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
-
-const ACCESS_KEY = "tradeafric_access";
-const REFRESH_KEY = "tradeafric_refresh";
-
-export function getTokens() {
-  if (typeof window === "undefined") return { access: null, refresh: null };
-  return {
-    access: window.localStorage.getItem(ACCESS_KEY),
-    refresh: window.localStorage.getItem(REFRESH_KEY),
-  };
-}
-
-export function setTokens(access: string, refresh: string) {
-  window.localStorage.setItem(ACCESS_KEY, access);
-  window.localStorage.setItem(REFRESH_KEY, refresh);
-}
-
-export function clearTokens() {
-  window.localStorage.removeItem(ACCESS_KEY);
-  window.localStorage.removeItem(REFRESH_KEY);
-}
+// Same-origin relative path — the browser always talks to its own origin, and
+// Next.js proxies /api/* to the Django backend server-side (see next.config.ts).
+// This is what makes httpOnly cookie auth work with zero CORS configuration.
+const API_BASE = "/api/v1";
 
 export class ApiError extends Error {
   status: number;
@@ -31,23 +13,6 @@ export class ApiError extends Error {
   }
 }
 
-async function refreshAccessToken(): Promise<string | null> {
-  const { refresh } = getTokens();
-  if (!refresh) return null;
-  const res = await fetch(`${API_BASE}/auth/refresh/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh }),
-  });
-  if (!res.ok) {
-    clearTokens();
-    return null;
-  }
-  const data = await res.json();
-  window.localStorage.setItem(ACCESS_KEY, data.access);
-  return data.access;
-}
-
 interface RequestOptions {
   method?: string;
   body?: unknown;
@@ -55,27 +20,36 @@ interface RequestOptions {
   auth?: boolean;
 }
 
-export async function apiFetch<T>(path: string, opts: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, isFormData = false, auth = true } = opts;
+async function refreshAccessToken(): Promise<boolean> {
+  const res = await fetch(`${API_BASE}/auth/refresh/`, {
+    method: "POST",
+    credentials: "include",
+  });
+  return res.ok;
+}
 
-  const doFetch = async (accessToken: string | null): Promise<Response> => {
+export async function apiFetch<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+  const { method = "GET", body, isFormData = false } = opts;
+
+  const doFetch = (): Promise<Response> => {
     const headers: Record<string, string> = {};
     if (!isFormData) headers["Content-Type"] = "application/json";
-    if (auth && accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
 
     return fetch(`${API_BASE}${path}`, {
       method,
       headers,
+      credentials: "include", // send/receive the httpOnly auth cookies
       body: body ? (isFormData ? (body as FormData) : JSON.stringify(body)) : undefined,
     });
   };
 
-  let { access } = getTokens();
-  let res = await doFetch(access);
+  let res = await doFetch();
 
-  if (res.status === 401 && auth) {
-    access = await refreshAccessToken();
-    if (access) res = await doFetch(access);
+  // Access-token cookie expired — the refresh cookie (longer-lived) can silently mint
+  // a new one server-side. Retry exactly once after a successful refresh.
+  if (res.status === 401) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) res = await doFetch();
   }
 
   if (!res.ok) {

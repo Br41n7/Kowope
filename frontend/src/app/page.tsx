@@ -26,7 +26,7 @@ export default function Home() {
         </div>
       )}
 
-      {user && !user.is_kyc_verified && (
+      {user && !user.is_kyc_verified && (user.role === "buyer" || user.role === "seller") && (
         <div className="mt-6 border border-ochre/40 bg-ochre/10 px-4 py-3 text-sm text-ink">
           Your KYC is not yet approved. <Link href="/kyc" className="underline">Submit your business details</Link> to
           start posting RFQs or offers.
@@ -41,6 +41,16 @@ export default function Home() {
       {user && user.is_kyc_verified && user.role === "seller" && (
         <Link href="/seller/rfqs" className="mt-6 inline-block bg-ochre px-4 py-2 text-sm font-medium text-white hover:bg-ochre/90">
           Browse open RFQs
+        </Link>
+      )}
+      {user && user.role === "logistics" && (
+        <Link href="/logistics" className="mt-6 inline-block bg-ochre px-4 py-2 text-sm font-medium text-white hover:bg-ochre/90">
+          Open the Logistics Desk
+        </Link>
+      )}
+      {user && user.role === "inspector" && (
+        <Link href="/inspector" className="mt-6 inline-block bg-ochre px-4 py-2 text-sm font-medium text-white hover:bg-ochre/90">
+          Open the Inspector Desk
         </Link>
       )}
     </div>

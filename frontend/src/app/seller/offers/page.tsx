@@ -5,8 +5,7 @@ import { RoleGuard } from "@/components/RoleGuard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { useAuth } from "@/context/AuthContext";
-import { unwrap } from "@/lib/endpoints";
-import { apiFetch } from "@/lib/api";
+import { listOffers, unwrap } from "@/lib/endpoints";
 import type { Offer } from "@/lib/types";
 
 function MyOffers() {
@@ -15,9 +14,7 @@ function MyOffers() {
 
   useEffect(() => {
     if (!user) return;
-    apiFetch<{ results: Offer[] } | Offer[]>(`/offers/?seller=${user.id}`).then((data) =>
-      setOffers(unwrap(data))
-    );
+    listOffers({ seller: String(user.id) }).then((data) => setOffers(unwrap(data)));
   }, [user]);
 
   return (

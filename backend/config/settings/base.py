@@ -50,6 +50,16 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "config.urls"
 
+# The frontend proxies /api/* to this backend via Next.js rewrites (see
+# frontend/next.config.ts). Next's `:path*` catch-all rewrite does not preserve a
+# trailing slash when reconstructing the destination URL, so with APPEND_SLASH's
+# default redirect-based behavior, a POST would hit Django's "can't redirect a
+# POST and keep the body" error, and a GET would loop forever (redirect adds the
+# slash back → proxy strips it again on the next hop). The whole API is
+# deliberately slash-less (see each app's urls.py: DefaultRouter(trailing_slash=False))
+# to match exactly what the proxy actually delivers.
+APPEND_SLASH = False
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -96,7 +106,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "core.authentication.CookieJWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
@@ -112,12 +122,29 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 }
 
+# httpOnly auth cookies. In production (DEBUG=False) these are always sent over HTTPS
+# and scoped SameSite=Lax, which works cleanly because the frontend proxies /api/*
+# to this backend at the same origin (see frontend/next.config.ts) — no cross-site
+# cookie or CORS configuration is needed.
+AUTH_COOKIE_ACCESS = "ta_access"
+AUTH_COOKIE_REFRESH = "ta_refresh"
+AUTH_COOKIE_SECURE = not DEBUG
+AUTH_COOKIE_SAMESITE = "Lax"
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "TradeAfric API",
     "DESCRIPTION": "Digital Trade Infrastructure Platform — MVP API",
     "VERSION": "1.0.0",
+    "SCHEMA_PATH_PREFIX": "/api/v1",
+    "ENUM_NAME_OVERRIDES": {
+        "StatusEnum": "apps.marketplace.models.RFQ.Status",
+    },
 }
 
 CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS", default=["http://localhost:3000"]
 )
+# Only relevant if something talks to the API cross-origin directly (e.g. a mobile app
+# or direct API testing) — the Next.js frontend itself proxies same-origin and never
+# needs CORS at all. Credentials must be allowed for cookie-based auth to work cross-origin.
+CORS_ALLOW_CREDENTIALS = True

@@ -1,8 +1,10 @@
-from django.contrib.auth import get_user_model
+from django.conf import settings
+from django.contrib.auth import authenticate, get_user_model
 from django.utils import timezone
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.permissions import IsAdminRole
@@ -10,11 +12,31 @@ from .models import KYCProfile
 from .serializers import (
     KYCProfileSerializer,
     KYCReviewSerializer,
+    LoginSerializer,
     RegisterSerializer,
     UserSerializer,
 )
 
 User = get_user_model()
+
+
+def _cookie_kwargs():
+    return dict(
+        httponly=True,
+        secure=settings.AUTH_COOKIE_SECURE,
+        samesite=settings.AUTH_COOKIE_SAMESITE,
+        path="/",
+    )
+
+
+def _set_auth_cookies(response, access, refresh):
+    response.set_cookie(settings.AUTH_COOKIE_ACCESS, str(access), **_cookie_kwargs())
+    response.set_cookie(settings.AUTH_COOKIE_REFRESH, str(refresh), **_cookie_kwargs())
+
+
+def _clear_auth_cookies(response):
+    response.delete_cookie(settings.AUTH_COOKIE_ACCESS, path="/")
+    response.delete_cookie(settings.AUTH_COOKIE_REFRESH, path="/")
 
 
 class RegisterView(generics.CreateAPIView):
@@ -27,14 +49,53 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         refresh = RefreshToken.for_user(user)
-        return Response(
-            {
-                "user": UserSerializer(user).data,
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            },
-            status=status.HTTP_201_CREATED,
-        )
+        response = Response({"user": UserSerializer(user).data}, status=status.HTTP_201_CREATED)
+        _set_auth_cookies(response, refresh.access_token, refresh)
+        return response
+
+
+class LoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = LoginSerializer
+
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        user = authenticate(request, username=username, password=password)
+        if user is None:
+            return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+        refresh = RefreshToken.for_user(user)
+        response = Response({"user": UserSerializer(user).data})
+        _set_auth_cookies(response, refresh.access_token, refresh)
+        return response
+
+
+class RefreshView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        raw_refresh = request.COOKIES.get(settings.AUTH_COOKIE_REFRESH)
+        if not raw_refresh:
+            return Response({"detail": "No refresh cookie present."}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            refresh = RefreshToken(raw_refresh)
+        except TokenError:
+            response = Response({"detail": "Refresh token invalid or expired."}, status=status.HTTP_401_UNAUTHORIZED)
+            _clear_auth_cookies(response)
+            return response
+
+        response = Response({"detail": "refreshed"})
+        response.set_cookie(settings.AUTH_COOKIE_ACCESS, str(refresh.access_token), **_cookie_kwargs())
+        return response
+
+
+class LogoutView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        response = Response({"detail": "logged out"})
+        _clear_auth_cookies(response)
+        return response
 
 
 class MeView(APIView):

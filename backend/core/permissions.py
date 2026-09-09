@@ -31,6 +31,16 @@ class IsKYCVerified(BasePermission):
         return bool(request.user and request.user.is_authenticated and request.user.is_kyc_verified)
 
 
+class IsLogisticsRole(BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated and request.user.role == "logistics")
+
+
+class IsInspectorRole(BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated and request.user.role == "inspector")
+
+
 class IsOwnerOrReadOnly(BasePermission):
     """Object-level: only the object's `owner_field` attribute (set on the view) can edit it."""
 

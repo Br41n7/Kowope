@@ -4,6 +4,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+import core.schema  # noqa: F401 — registers the cookie-auth scheme with drf-spectacular
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/", include("apps.accounts.urls")),
@@ -13,8 +15,8 @@ urlpatterns = [
     path("api/v1/", include("apps.logistics.urls")),
     path("api/v1/", include("apps.quality.urls")),
     path("api/v1/", include("apps.notifications.urls")),
-    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("api/schema", SpectacularAPIView.as_view(), name="schema"),
+    path("api/docs", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
 ]
 
 if settings.DEBUG:

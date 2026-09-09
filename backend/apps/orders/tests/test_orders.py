@@ -47,7 +47,7 @@ def test_only_buyer_or_seller_can_view_their_order():
 
     client = APIClient()
     client.force_authenticate(user=outsider)
-    resp = client.get(f"/api/v1/orders/{order.id}/")
+    resp = client.get(f"/api/v1/orders/{order.id}")
     assert resp.status_code == 404  # filtered out of queryset, not just permission-denied
 
 
@@ -66,6 +66,6 @@ def test_cannot_set_arbitrary_status_via_api():
 
     client = APIClient()
     client.force_authenticate(user=buyer)
-    resp = client.patch(f"/api/v1/orders/{order.id}/", {"status": "issued"}, format="json")
+    resp = client.patch(f"/api/v1/orders/{order.id}", {"status": "issued"}, format="json")
     # 'issued' is the initial status, not in ALLOWED_SELF_SERVICE_STATUSES -> rejected
     assert resp.status_code == 400

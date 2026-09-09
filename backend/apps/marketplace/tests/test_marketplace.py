@@ -29,7 +29,7 @@ def seller():
 def test_buyer_can_create_rfq(buyer):
     client = APIClient()
     client.force_authenticate(user=buyer)
-    resp = client.post("/api/v1/rfqs/", {
+    resp = client.post("/api/v1/rfqs", {
         "commodity": "Cocoa", "quantity": "100", "unit": "MT",
         "delivery_location": "Apapa", "delivery_date": "2026-12-31",
         "target_price": "300", "quality_verification_pref": "sample", "payment_pref": "escrow",
@@ -47,7 +47,7 @@ def test_cannot_offer_on_closed_rfq(buyer, seller):
     )
     client = APIClient()
     client.force_authenticate(user=seller)
-    resp = client.post("/api/v1/offers/", {"rfq": rfq.id, "price": "210", "delivery_period": "10 days"}, format="json")
+    resp = client.post("/api/v1/offers", {"rfq": rfq.id, "price": "210", "delivery_period": "10 days"}, format="json")
     assert resp.status_code == 400
 
 
@@ -62,7 +62,7 @@ def test_accept_offer_creates_purchase_order_and_closes_rfq(buyer, seller):
 
     client = APIClient()
     client.force_authenticate(user=buyer)
-    resp = client.post(f"/api/v1/offers/{offer.id}/accept/", format="json")
+    resp = client.post(f"/api/v1/offers/{offer.id}/accept", format="json")
 
     assert resp.status_code == 201
     assert PurchaseOrder.objects.filter(offer=offer).exists()
@@ -84,5 +84,5 @@ def test_only_rfq_buyer_can_accept_offer(buyer, seller):
 
     client = APIClient()
     client.force_authenticate(user=other_buyer)
-    resp = client.post(f"/api/v1/offers/{offer.id}/accept/", format="json")
+    resp = client.post(f"/api/v1/offers/{offer.id}/accept", format="json")
     assert resp.status_code == 403

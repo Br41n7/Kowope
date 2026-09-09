@@ -20,9 +20,10 @@ export default function RegisterPage() {
     setError(null);
     setLoading(true);
     try {
-      await register(form);
+      const user = await register(form);
       await refresh();
-      router.push("/kyc");
+      const dashboard: Record<string, string> = { logistics: "/logistics", inspector: "/inspector" };
+      router.push(dashboard[user.role] ?? "/kyc");
     } catch (err) {
       setError(err instanceof ApiError ? JSON.stringify(err.body) : "Registration failed.");
     } finally {
@@ -47,6 +48,8 @@ export default function RegisterPage() {
           <Select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
             <option value="buyer">Buyer</option>
             <option value="seller">Seller</option>
+            <option value="logistics">Logistics Partner</option>
+            <option value="inspector">Quality Inspector</option>
           </Select>
         </Field>
         {error && <p className="text-sm text-danger">{error}</p>}
