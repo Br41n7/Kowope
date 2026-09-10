@@ -115,7 +115,15 @@ tradeafric/
 
 **Frontend routes** (`src/app/`): `/register`, `/login`, `/kyc`, `/buyer/rfqs[/new][/[id]]`, `/seller/rfqs`, `/seller/offers`, `/orders[/[id]]`, `/logistics`, `/inspector`, `/admin/kyc-review`, `/notifications`.
 
-**Full git history** on both repos is tagged per milestone — `git log --oneline` and `git tag` on either repo tell the real story better than prose can. Current tag: `v2.0.0-mvp`.
+**Full git history** on both repos is tagged per milestone — `git log --oneline` and `git tag` on either repo tell the real story better than prose can. Current tag: `v2.1.0-render-ready`.
+
+### Render deployment
+
+`render.yaml` at the project root is a [Render Blueprint](https://render.com/docs/blueprint-spec) that provisions the whole stack (Postgres + backend + frontend) in one pass — see `RENDER_DEPLOY.md` for the full walkthrough. Two things worth knowing if you touch this:
+
+- **Media serving in production was a real, silent bug.** Django's built-in `static()` URL helper (`django.conf.urls.static.static`) no-ops whenever `DEBUG=False` — calling it unconditionally *looks* like a fix but does nothing. The actual fix wires `django.views.static.serve` directly (see `config/urls.py`). Verified by actually booting gunicorn under production settings and fetching a file over HTTP, not just by reading the code — this class of bug (something that looks correct but is quietly a no-op) doesn't show up in `manage.py check` or in tests that never run under `DEBUG=False`.
+- **`ALLOWED_HOSTS`/`CSRF_TRUSTED_ORIGINS`/`BACKEND_INTERNAL_URL` are wired via Render's `fromService`/`fromDatabase` blueprint mechanisms**, not hand-entered — see the comments in `render.yaml` for exactly how. `CSRF_TRUSTED_ORIGINS` is derived in Django settings from `ALLOWED_HOSTS` rather than needing its own env var, since they must always agree.
+- The backend's media disk pins it to a single Render instance (Render disks don't support autoscaling) — acceptable for a pilot, but it's the same S3-migration item already flagged in §9 below.
 
 ---
 

@@ -22,6 +22,12 @@ SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30  # 30 days; raise once you're confident 
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
+# Django's CSRF check (used by the session-authenticated admin site — the JWT-cookie
+# API auth below is NOT session-based and isn't subject to this) requires the request's
+# Origin to appear here whenever it's served over HTTPS behind a proxy. Derived from
+# ALLOWED_HOSTS rather than a separate env var, since they must always agree anyway.
+CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS if host and host != "*"]  # noqa: F405
+
 # Static files served via whitenoise (see requirements.txt + MIDDLEWARE below).
 STATIC_ROOT = BASE_DIR / "staticfiles"  # noqa: F405
 STORAGES = {

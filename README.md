@@ -60,6 +60,12 @@ docker compose up --build
 Caddy will request a real Let's Encrypt certificate if `DOMAIN` is a real,
 DNS-pointed domain, or serve local HTTPS if left as `localhost`.
 
+## Deploying to Render
+
+`render.yaml` deploys the whole stack (Postgres + backend + frontend) in one
+Blueprint — see [`RENDER_DEPLOY.md`](./RENDER_DEPLOY.md) for the full walkthrough.
+Short version: push to GitHub, **New → Blueprint** in the Render dashboard, done.
+
 ## Status (as of `v2.0.0-mvp` on both repos)
 
 - **Backend:** 28 automated tests passing (`pytest`). Full 15-step trade flow

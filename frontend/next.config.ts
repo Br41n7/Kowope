@@ -2,10 +2,17 @@ import type { NextConfig } from "next";
 
 // The backend URL as seen from the Next.js server process (not the browser).
 // In docker-compose this is the service name (e.g. http://backend:8000); locally
-// it's http://localhost:8000. The browser never talks to this URL directly —
-// it only ever calls /api/... on its own origin, which Next.js proxies here.
-// This keeps auth cookies same-origin with zero CORS configuration needed.
-const BACKEND_INTERNAL_URL = process.env.BACKEND_INTERNAL_URL ?? "http://localhost:8000";
+// it's http://localhost:8000; on Render it's the backend service's full external
+// URL (e.g. via `fromService: { envVarKey: RENDER_EXTERNAL_URL }` in render.yaml).
+// The browser never talks to this URL directly — it only ever calls /api/... on
+// its own origin, which Next.js proxies here. This keeps auth cookies same-origin
+// with zero CORS configuration needed.
+const rawBackendUrl = process.env.BACKEND_INTERNAL_URL ?? "http://localhost:8000";
+// Defensive: if this ever arrives as a bare host (no scheme) from a platform's
+// service-reference mechanism, assume https rather than failing the rewrite.
+const BACKEND_INTERNAL_URL = /^https?:\/\//.test(rawBackendUrl)
+  ? rawBackendUrl
+  : `https://${rawBackendUrl}`;
 
 const nextConfig: NextConfig = {
   // Without this, Next.js's own trailing-slash redirect fires BEFORE the rewrite
