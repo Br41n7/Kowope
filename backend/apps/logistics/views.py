@@ -31,7 +31,7 @@ class LogisticsRequestViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.id not in (order.buyer_id, order.seller_id) and user.role != "admin":
             raise PermissionDenied("Only the order's buyer or seller can request logistics for it.")
-        serializer.save()
+        serializer.save(requested_by=user)
 
     @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated, IsLogisticsRole])
     def assign(self, request, pk=None):

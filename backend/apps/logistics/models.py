@@ -13,6 +13,10 @@ class LogisticsRequest(models.Model):
     pickup_location = models.CharField(max_length=255)
     delivery_location = models.CharField(max_length=255)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.REQUESTED)
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="logistics_requests_made",
+    )
     assigned_partner = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name="logistics_jobs",

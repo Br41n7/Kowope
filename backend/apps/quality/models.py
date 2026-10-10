@@ -10,6 +10,10 @@ class InspectionRequest(models.Model):
 
     order = models.ForeignKey("orders.PurchaseOrder", on_delete=models.CASCADE, related_name="inspection_requests")
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.REQUESTED)
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="inspection_requests_made",
+    )
     inspector = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name="inspection_jobs",

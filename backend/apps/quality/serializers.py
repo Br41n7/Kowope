@@ -31,5 +31,5 @@ class InspectionRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InspectionRequest
-        fields = ["id", "order", "status", "inspector", "created_at", "report"]
-        read_only_fields = ["status", "created_at"]
+        fields = ["id", "order", "requested_by", "status", "inspector", "created_at", "report"]
+        read_only_fields = ["requested_by", "status", "created_at"]

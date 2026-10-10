@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "apps.logistics",
     "apps.quality",
     "apps.notifications",
+    "apps.ratings",
 ]
 
 MIDDLEWARE = [

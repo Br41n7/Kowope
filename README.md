@@ -88,6 +88,4 @@ Short version: push to GitHub, **New → Blueprint** in the Render dashboard, do
 
 See `PROJECT_STATUS.md` §9 for the prioritized list. Short version: Ratings &
 Reputation (planned for MVP, never built), Playwright end-to-end tests, a CI
-pipeline, then real GPS for logistics and a proper Dispute model. Do not start
-on escrow/FX/wallets/financier modules without a licensed banking/payments
-partner decision first — that's a business/legal call, not an engineering one.
+pipeline, then real GPS for logistics and a proper Dispute model. 

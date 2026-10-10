@@ -18,7 +18,7 @@ class LogisticsRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = LogisticsRequest
         fields = [
-            "id", "order", "pickup_location", "delivery_location",
+            "id", "order", "requested_by", "pickup_location", "delivery_location",
             "status", "assigned_partner", "created_at", "updates",
         ]
-        read_only_fields = ["status", "created_at"]
+        read_only_fields = ["requested_by", "status", "created_at"]
